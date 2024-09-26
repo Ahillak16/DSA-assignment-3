@@ -1,0 +1,180 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct Node {
+    char name[100];
+    struct Node* next;
+};
+struct Node* createNode(char* name) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    strcpy(newNode->name, name);
+    newNode->next = NULL;
+    return newNode;
+}
+void displayContacts(struct Node* head) {
+    if (head == NULL) {
+        printf("The contact list is empty.\n");
+        return;
+    }
+    struct Node* temp = head;
+    printf("Contacts in the list:\n");
+    while (temp != NULL) {
+        printf("%s\n", temp->name);
+        temp = temp->next;
+    }
+}
+void insertContact(struct Node** head, char* name, int position) {
+    struct Node* newNode = createNode(name);
+    if (position == 1) {
+        newNode->next = *head;
+        *head = newNode;
+    } else {
+        struct Node* temp = *head;
+        for (int i = 1; temp != NULL && i < position - 1; i++) {
+            temp = temp->next;
+        }
+        if (temp == NULL) {
+            printf("Position out of range. Adding at the end of the list.\n");
+            newNode->next = NULL;
+            struct Node* last = *head;
+            if (last == NULL) {
+                *head = newNode;
+            } else {
+                while (last->next != NULL) {
+                    last = last->next;
+                }
+                last->next = newNode;
+            }
+        } else {
+            newNode->next = temp->next;
+            temp->next = newNode;
+        }
+    }
+    displayContacts(*head);
+}
+void deleteContactByPosition(struct Node** head, int position) {
+    if (*head == NULL) {
+        printf("The contact list is empty.\n");
+        return;
+    }
+    struct Node* temp = *head;
+    if (position == 1) {
+        *head = temp->next;
+        free(temp);
+    } else {
+        struct Node* prev = NULL;
+        for (int i = 1; temp != NULL && i < position; i++) {
+            prev = temp;
+            temp = temp->next;
+        }
+        if (temp == NULL) {
+            printf("Position out of range.\n");
+        } else {
+            prev->next = temp->next;
+            free(temp);
+        }
+    }
+    displayContacts(*head);
+}
+void deleteContactByName(struct Node** head, char* name) {
+    if (*head == NULL) {
+        printf("The contact list is empty.\n");
+        return;
+    }
+    struct Node* temp = *head;
+    struct Node* prev = NULL;
+    if (strcmp(temp->name, name) == 0) {
+        *head = temp->next;
+        free(temp);
+        displayContacts(*head);
+        return;
+    }
+    while (temp != NULL && strcmp(temp->name, name) != 0) {
+        prev = temp;
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        printf("Contact not found.\n");
+    } else {
+        prev->next = temp->next;
+        free(temp);
+    }
+    displayContacts(*head);
+}
+void searchContact(struct Node* head, char* name) {
+    struct Node* temp = head;
+    int position = 1;
+    while (temp != NULL) {
+        if (strcmp(temp->name, name) == 0) {
+            printf("Contact '%s' found at position %d.\n", name, position);
+            return;
+        }
+        temp = temp->next;
+        position++;
+    }
+    printf("Contact '%s' not found in the list.\n", name);
+}
+int main() {
+    struct Node* head = NULL;
+    int choice, position;
+    char name[100];
+    while (1) {
+        printf("\n--- Contact Management System ---\n");
+        printf("1. Create Contact List\n");
+        printf("2. Insert New Contact\n");
+        printf("3. Delete Contact\n");
+        printf("4. Display Contacts\n");
+        printf("5. Search for a Contact\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter contact name (or 'done' to finish): ");
+                while (1) {
+                    scanf("%s", name);
+                    if (strcmp(name, "done") == 0)
+                        break;
+                    insertContact(&head, name, 1);
+                }
+                break;
+            case 2:
+                printf("Enter contact name to insert: ");
+                scanf("%s", name);
+                printf("Enter the position to insert the contact: ");
+                scanf("%d", &position);
+                insertContact(&head, name, position);
+                break;
+            case 3:
+                printf("Delete by 1) Position or 2) Name: ");
+                int deleteChoice;
+                scanf("%d", &deleteChoice);
+                if (deleteChoice == 1) {
+                    printf("Enter position to delete: ");
+                    scanf("%d", &position);
+                    deleteContactByPosition(&head, position);
+                } else if (deleteChoice == 2) {
+                    printf("Enter name to delete: ");
+                    scanf("%s", name);
+                    deleteContactByName(&head, name);
+                } else {
+                    printf("Invalid choice.\n");
+                }
+                break;
+            case 4:
+                displayContacts(head);
+                break;
+            case 5:
+                printf("Enter name to search: ");
+                scanf("%s", name);
+                searchContact(head, name);
+                break;
+            case 6:
+                printf("Exiting...\n");
+                return 0;
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
